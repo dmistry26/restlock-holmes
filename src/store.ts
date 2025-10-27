@@ -86,15 +86,26 @@ class MysteryStore {
     };
   }
 
-  // Get a random hint for a specific clue
-  getRandomHint(mysteryId: string, clueId: string): string | null {
+  // Get a hint by index for a specific clue (0-indexed)
+  // Returns the first hint if index is undefined
+  // Returns "No more hints." if index is out of bounds
+  getHintByIndex(mysteryId: string, clueId: string, index?: number): string | null {
     const clueData = this.getClueById(mysteryId, clueId);
     if (!clueData || !clueData.clue.hints || clueData.clue.hints.length === 0) {
       return null;
     }
 
-    const randomIndex = Math.floor(Math.random() * clueData.clue.hints.length);
-    return clueData.clue.hints[randomIndex];
+    // If no index provided, return the first hint
+    if (index === undefined) {
+      return clueData.clue.hints[0];
+    }
+
+    // If index is out of bounds, return "No more hints."
+    if (index < 0 || index >= clueData.clue.hints.length) {
+      return "No more hints.";
+    }
+
+    return clueData.clue.hints[index];
   }
 
   // Check if an answer is correct for a specific clue

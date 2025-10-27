@@ -74,11 +74,11 @@ Each mystery requires reading API documentation and writing code to solve.`,
     },
   )
 
-  // GET /hint - Get a random hint for a specific clue
+  // GET /hint - Get a hint for a specific clue
   .get(
     "/hint",
     ({ query, set }) => {
-      const { mysteryId, clueId } = query;
+      const { mysteryId, clueId, index } = query;
 
       if (!mysteryId || !clueId) {
         set.status = 400;
@@ -88,8 +88,8 @@ Each mystery requires reading API documentation and writing code to solve.`,
         } satisfies ApiError;
       }
 
-      // Get a random hint for this clue (stateless)
-      const hint = store.getRandomHint(mysteryId, clueId);
+      // Get hint by index (first hint if no index provided)
+      const hint = store.getHintByIndex(mysteryId, clueId, index);
 
       if (!hint) {
         set.status = 404;
@@ -110,11 +110,12 @@ Each mystery requires reading API documentation and writing code to solve.`,
       detail: {
         tags: ["Game"],
         summary: "Get a hint for the current clue",
-        description: `Retrieves a random hint to help solve the current clue. Hints are unlimited and don't affect scoring.`,
+        description: `Retrieves a hint by index to help solve the current clue. If no index is provided, returns the first hint (index 0). Returns "No more hints." if the index is out of bounds. Hints are unlimited and don't affect scoring.`,
       },
       query: t.Object({
         mysteryId: t.String(),
         clueId: t.String(),
+        index: t.Optional(t.Numeric()),
       }),
     },
   )
@@ -267,12 +268,19 @@ if (result.correct && result.nextClue) {
         },
         {
           description: "Optional: Get a hint if you're stuck",
-          code: toCode`// Get a random hint for the current clue
+          code: toCode`// Get the first hint (no index parameter)
 const hintResponse = await fetch(
   \`http://localhost:3000/hint?mysteryId=\${mystery.mysteryId}&clueId=\${mystery.currentClue.id}\`
 );
 const hintData = await hintResponse.json();
-console.log('Hint:', hintData.hint);`,
+console.log('Hint:', hintData.hint);
+
+// Get a specific hint by index (e.g., second hint)
+const hint2Response = await fetch(
+  \`http://localhost:3000/hint?mysteryId=\${mystery.mysteryId}&clueId=\${mystery.currentClue.id}&index=1\`
+);
+const hint2Data = await hint2Response.json();
+console.log('Hint 2:', hint2Data.hint);`,
         },
       ],
 
@@ -320,7 +328,9 @@ solveMystery();`,
       "Use the apiHint to know which external API to query",
       "Process the API response to extract the specific data you need",
       "Answers are case-insensitive strings",
-      "Each clue has unlimited hints - use GET /hint when stuck",
+      "Each clue has multiple hints - use GET /hint to get hints sequentially",
+      "Hints are indexed starting at 0. Omit the index to get the first hint",
+      "When you run out of hints, the API will return 'No more hints.'",
       "Check the /openapi docs for full API reference",
     ],
 
