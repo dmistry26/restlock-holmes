@@ -2,7 +2,12 @@ import { Elysia, t } from "elysia";
 import { openapi } from "@elysiajs/openapi";
 import { store } from "./store";
 import { Mystery, Hint, ApiError, SubmitResponse } from "./types";
-
+function toCode(strings: TemplateStringsArray): string[] {
+  const str = strings[0];
+  const lines = str.split("\n");
+  const length = Math.max(...lines.map((line) => line.length));
+  return lines.map((line) => line.padEnd(length));
+}
 const app = new Elysia()
   .use(
     openapi({
@@ -200,53 +205,47 @@ Each mystery requires reading API documentation and writing code to solve.`,
 
   // Root endpoint
   .get("/", () => ({
-    message: "Welcome to API Mystery Hunt!",
+    message: "Welcome to RESTlock Holmes!",
     tagline: "Learn APIs by solving mysteries with code!",
 
-    howToPlay: {
-      step1: "Get a mystery: GET /mystery",
-      step2: "Read the clue and use external APIs to find the answer",
-      step3: "Submit your answer: POST /submit",
-      step4: "If correct, get the next clue. If stuck, get a hint!",
-      step5: "Solve all clues to complete the mystery",
-    },
-
-    endpoints: {
-      getMystery: "GET /mystery?difficulty=easy|medium|hard",
-      getHint: "GET /hint?mysteryId={id}&clueId={clueId}",
-      submitAnswer: "POST /submit {mysteryId, clueId, answer}",
-      docs: "Go to /openapi in your browser",
-    },
-
+    howToPlay: [
+      "1. Get a mystery: GET /mystery",
+      "2. Read the clue and use external APIs to find the answer",
+      "3. Submit your answer: POST /submit",
+      "4. If correct, get the next clue. If stuck, get a hint!",
+      "5. Solve all clues to complete the mystery",
+      "Check out the documentation for more details (at /openapi)",
+    ],
     fetchApiTutorial: {
       title: "Using the Fetch API",
       description: "Here's how to solve mysteries using JavaScript's fetch API",
 
-      example1_getMystery: {
-        description: "Step 1: Get a mystery to solve",
-        code: `// Get a random mystery
+      steps: [
+        {
+          description: "Step 1: Get a mystery to solve",
+          code: toCode`// Get a random mystery
 const response = await fetch('http://localhost:3000/mystery');
 const mystery = await response.json();
 
 console.log(mystery.title);
 console.log(mystery.currentClue.text);
-// Save mysteryId and clueId - you'll need them!`.split("\n"),
-      },
+// Save mysteryId and clueId - you'll need them!`,
+        },
 
-      example2_externalAPI: {
-        description: "Step 2: Use external APIs to find the answer",
-        code: `// Example: Using PokéAPI to find information
-const pokeResponse = await fetch('https://pokeapi.co/api/v2/pokemon/boldore');
+        {
+          description: "Step 2: Use external APIs to find the answer",
+          code: toCode`// Example: Using PokeAPI to find information
+const pokeResponse = await fetch('https://pokeapi.co/api/v2/pokemon/pikachu');
 const pokeData = await pokeResponse.json();
 
 // Process the data to find your answer
 const answer = pokeData.game_indices.length.toString();
-console.log('My answer:', answer);`.split("\n"),
-      },
+console.log('My answer:', answer);`,
+        },
 
-      example3_submitAnswer: {
-        description: "Step 3: Submit your answer",
-        code: `// Submit your answer
+        {
+          description: "Step 3: Submit your answer",
+          code: toCode`// Submit your answer
 const submitResponse = await fetch('http://localhost:3000/submit', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
@@ -264,22 +263,22 @@ if (result.correct && result.nextClue) {
   console.log('Next clue:', result.nextClue.text);
 } else if (result.mysterySolved) {
   console.log('Mystery solved!', result.conclusion);
-}`.split("\n"),
-      },
-
-      example4_getHint: {
-        description: "Optional: Get a hint if you're stuck",
-        code: `// Get a random hint for the current clue
+}`,
+        },
+        {
+          description: "Optional: Get a hint if you're stuck",
+          code: toCode`// Get a random hint for the current clue
 const hintResponse = await fetch(
   \`http://localhost:3000/hint?mysteryId=\${mystery.mysteryId}&clueId=\${mystery.currentClue.id}\`
 );
 const hintData = await hintResponse.json();
-console.log('Hint:', hintData.hint);`.split("\n"),
-      },
+console.log('Hint:', hintData.hint);`,
+        },
+      ],
 
       fullExample: {
         description: "Complete example: Solving a mystery",
-        code: `async function solveMystery() {
+        code: toCode`async function solveMystery() {
   // 1. Get mystery
   const mystery = await fetch('http://localhost:3000/mystery')
     .then(r => r.json());
@@ -312,7 +311,7 @@ console.log('Hint:', hintData.hint);`.split("\n"),
   return result;
 }
 
-solveMystery();`.split("\n"),
+solveMystery();`,
       },
     },
 
@@ -325,11 +324,11 @@ solveMystery();`.split("\n"),
       "Check the /openapi docs for full API reference",
     ],
 
-    resources: {
-      documentation: "See /openapi",
-      exampleSolutions: "See /tests directory for complete solutions",
-      mysteryGuide: "See /docs/README.md for creating mysteries",
-    },
+    // resources: {
+    //   documentation: "See /openapi",
+    //   exampleSolutions: "See /tests directory for complete solutions",
+    //   mysteryGuide: "See /docs/README.md for creating mysteries",
+    // },
   }))
 
   .listen(3000);
