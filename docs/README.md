@@ -133,15 +133,14 @@ See [API_LIST](./API_LIST.md)
 ### Answer Types
 
 **Static Answers** - Use exact strings:
+All answers should be exact strings (case-insensitive):
 ```yaml
-answer: "219"
+answer: "219"        # Numeric answer as string
+answer: "boldore"    # Text answer
+answer: "7"          # Single digit
 ```
 
-**Dynamic Answers** - Use "dynamic" for real-time data:
-```yaml
-answer: "dynamic"
-```
-The app will accept any numeric answer for dynamic mysteries (validates with regex `/^-?\d+$/`).
+The app performs case-insensitive matching, so "Boldore", "boldore", and "BOLDORE" are all accepted.
 
 ### Testing Your Mystery
 

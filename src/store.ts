@@ -104,13 +104,8 @@ class MysteryStore {
 
     const expectedAnswer = clueData.clue.answer;
 
-    // For dynamic answers, we accept any non-empty numeric answer as correct
-    if (expectedAnswer === 'dynamic') {
-      return answer.length > 0 && /^-?\d+$/.test(answer);
-    }
-
     // Case-insensitive comparison for text answers
-    return answer.toLowerCase() === expectedAnswer.toLowerCase();
+    return answer.toLowerCase().trim() === expectedAnswer.toLowerCase().trim();
   }
 
   // Check if this is the last clue

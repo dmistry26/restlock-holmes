@@ -34,37 +34,35 @@ mysteries:
     conclusion: "Incredible work, detective! You've cracked the trainer's code. The number 350 represents the total power level of their prized Boldore across all its appearances. The trainer wanted to ensure only a true Pokémon master could decode their secret!"
 
   - id: myst_002
-    title: "The Cosmic Countdown"
+    title: "The Dog Breed Mystery"
     difficulty: easy
-    scenario: "Mission Control needs your help tracking vital ISS statistics. Each answer brings you closer to the final code..."
+    scenario: "A dog show judge left behind a coded message about the winning breeds. Can you crack the code?"
     clues:
       - id: clue_001
-        text: "First, find how many people are currently in space right now. What's the count?"
-        apiHint: "Check out the Open Notify API (http://api.open-notify.org/astros.json) - no authentication needed!"
-        answer: "dynamic"
+        text: "First, find how many sub-breeds the 'hound' breed has. What's the count?"
+        apiHint: "Check out the Dog API (https://dog.ceo/dog-api/) - no authentication needed!"
+        answer: "13"
         hints:
-          - "Make a GET request to http://api.open-notify.org/astros.json"
-          - "Look for the 'people' array in the response."
-          - "Count the length: people.length"
-          - "Convert the number to a string for your answer."
+          - "Use the Dog API endpoint: https://dog.ceo/api/breeds/list/all"
+          - "Look for the 'hound' key in the message object."
+          - "Count the number of items in the hound array."
+          - "The answer is 13."
       - id: clue_002
-        text: "Great! Now find the current longitude of the ISS and round it to the nearest integer. What number do you get?"
-        apiHint: "The Open Notify API provides real-time ISS location data at /iss-now.json"
-        answer: "dynamic"
+        text: "Good! Now find the sub-breed of 'hound' that comes FIRST alphabetically. What is it?"
+        apiHint: "Sort the sub-breeds alphabetically and pick the first one."
+        answer: "afghan"
         hints:
-          - "Use http://api.open-notify.org/iss-now.json"
-          - "Find the 'iss_position' object."
-          - "Get the 'longitude' value."
-          - "Round it: Math.round(parseFloat(longitude))"
+          - "Get the hound sub-breeds array from the previous step."
+          - "Sort them alphabetically."
+          - "The first one is 'afghan'."
       - id: clue_003
-        text: "Almost there! Take the absolute value of that longitude. That's your final answer!"
-        apiHint: "Use Math.abs() to get the absolute value."
-        answer: "dynamic"
+        text: "Perfect! Count how many letters are in 'afghan'. That's your final answer!"
+        apiHint: "Simple string length count."
+        answer: "6"
         hints:
-          - "Take the longitude from the previous step."
-          - "Apply Math.abs() to remove any negative sign."
-          - "That's your final answer!"
-    conclusion: "Mission accomplished! You've successfully tracked the ISS coordinates and crew. Mission Control is grateful for your swift and accurate data processing. The space station continues its journey around Earth!"
+          - "Count the characters in 'afghan'."
+          - "a-f-g-h-a-n = 6 letters."
+    conclusion: "Excellent detective work! The Afghan Hound was indeed the judge's favorite. You've successfully decoded the canine cipher!"
 
   - id: myst_003
     title: "The JSONPlaceholder Puzzle"
@@ -80,20 +78,19 @@ mysteries:
           - "Look for the 'userId' field in the response."
           - "The answer is 5."
       - id: clue_002
-        text: "Now fetch user #5's details and count how many characters are in their company name. What's the count?"
+        text: "Now fetch user #5's name. What is their first name?"
         apiHint: "Use the /users endpoint to get user information."
-        answer: "21"
+        answer: "Chelsey"
         hints:
           - "Use: https://jsonplaceholder.typicode.com/users/5"
-          - "Navigate to user.company.name"
-          - "Count all characters including spaces and dashes."
-          - "The company name is 'Keebler LLC' which has 11 characters, or check the actual API response."
+          - "Look at the 'name' field."
+          - "The first name is before the space."
+          - "It's 'Chelsey'."
       - id: clue_003
-        text: "Perfect! Now multiply that character count by the userId (5). What's your final answer?"
-        apiHint: "Simple multiplication of the two numbers you found."
-        answer: "105"
+        text: "Perfect! Count how many letters are in that first name. What's your answer?"
+        apiHint: "Simple string length count."
+        answer: "7"
         hints:
-          - "Take the character count from clue 2."
-          - "Multiply it by 5 (the userId)."
-          - "character_count × 5 = answer"
-    conclusion: "Outstanding detective work! You navigated through the JSONPlaceholder API like a pro. This fake API has served its purpose in training you well!"
+          - "Count the letters in 'Chelsey'."
+          - "C-h-e-l-s-e-y = 7 letters."
+    conclusion: "Outstanding detective work! You navigated through the JSONPlaceholder API like a pro. Chelsey Dietrich (user #5) was the key to unlocking this mystery!"
