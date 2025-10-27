@@ -4,7 +4,7 @@ export interface Clue {
   id: string;
   text: string;
   apiHint: string;
-  solved?: boolean;
+  hintsAvailable: number;  // Number of hints available for this clue
 }
 
 export interface Mystery {
@@ -12,18 +12,21 @@ export interface Mystery {
   title: string;
   difficulty: Difficulty;
   scenario: string;
-  clues: Clue[];
-  hintsAvailable: number;
+  currentClue: Clue;  // Only show the current clue
+  currentClueIndex: number;
+  totalClues: number;
   createdAt: string;
 }
 
 export interface Hint {
   mysteryId: string;
+  clueId: string;
   hint: string;
 }
 
 export interface SubmitRequest {
   mysteryId: string;
+  clueId: string;
   answer: string;
 }
 
@@ -31,8 +34,10 @@ export interface SubmitResponse {
   correct: boolean;
   message: string;
   mysteryId: string;
-  solvedAt?: string;
-  nextMysteryAvailable?: boolean;
+  clueId: string;
+  nextClue?: Clue;
+  mysterySolved?: boolean;
+  conclusion?: string;
 }
 
 export interface ApiError {
@@ -41,7 +46,7 @@ export interface ApiError {
   details?: Record<string, any>;
 }
 
-// Internal type for loaded mysteries
+// Internal type for loaded mysteries from YAML
 export interface MysteryData {
   id: string;
   title: string;
@@ -51,7 +56,8 @@ export interface MysteryData {
     id: string;
     text: string;
     apiHint: string;
+    answer: string;
+    hints: string[];  // Hints for this specific clue
   }>;
-  answer: string;
-  hints: string[];
+  conclusion: string;
 }

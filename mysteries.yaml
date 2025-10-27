@@ -2,153 +2,98 @@ mysteries:
   - id: myst_001
     title: "The Evolved Enigma"
     difficulty: medium
-    scenario: "A mysterious trainer left behind cryptic notes about their favorite Pokémon. Can you decipher their riddle?"
+    scenario: "A mysterious trainer left behind cryptic notes about their favorite Pokémon. Each clue leads to the next..."
     clues:
       - id: clue_001
-        text: "Find the second evolution of a rock-type Pokémon whose name ends in 'dore'. Your answer is the sum of all game_indices for this Pokémon."
+        text: "First, find all rock-type Pokémon and locate the one whose name ends in 'dore' and has exactly 7 letters. What is its name?"
         apiHint: "You'll need to explore the PokéAPI (https://pokeapi.co/docs/v2) to solve this puzzle."
-    answer: "219"
-    hints:
-      - "Look at the PokéAPI documentation for filtering Pokémon by type. You'll need to make multiple API calls."
-      - "Use the /type/rock endpoint to get all rock-type Pokémon. Then filter for names ending in 'dore'."
-      - "The Pokémon you're looking for is Boldore. Get its details from /pokemon/boldore."
-      - "Sum all values in the game_indices array from Boldore's data."
-      - "Make sure you're adding up the 'game_index' field from each entry in the array."
+        answer: "boldore"
+        hints:
+          - "Use the /type/rock endpoint to get all rock-type Pokémon."
+          - "Filter the list for Pokémon names ending in 'dore'."
+          - "Count the letters - you need exactly 7."
+          - "The answer is 'boldore'."
+      - id: clue_002
+        text: "Excellent! Now get Boldore's details and find the number of game versions it appears in. Count the entries in the game_indices array. What number do you get?"
+        apiHint: "Use the PokéAPI /pokemon/{name} endpoint to get detailed information."
+        answer: "14"
+        hints:
+          - "Use the endpoint: https://pokeapi.co/api/v2/pokemon/boldore"
+          - "Look for the 'game_indices' array in the response."
+          - "Count how many entries are in that array."
+          - "The answer is 14."
+      - id: clue_003
+        text: "Perfect! Now take that number (14) and multiply it by Boldore's base HP stat. What's your final answer?"
+        apiHint: "Look in the 'stats' array for the stat with name 'hp' and get its base_stat value."
+        answer: "350"
+        hints:
+          - "In the same Boldore data, find the 'stats' array."
+          - "Look for the stat where stat.name is 'hp'."
+          - "Get the base_stat value (it's 25)."
+          - "Multiply: 14 × 25 = 350"
+    conclusion: "Incredible work, detective! You've cracked the trainer's code. The number 350 represents the total power level of their prized Boldore across all its appearances. The trainer wanted to ensure only a true Pokémon master could decode their secret!"
 
   - id: myst_002
-    title: "The Stellar Mystery"
+    title: "The Cosmic Countdown"
     difficulty: easy
-    scenario: "An astronomer discovered something peculiar about a specific star system. Help decode their findings."
+    scenario: "Mission Control needs your help tracking vital ISS statistics. Each answer brings you closer to the final code..."
     clues:
-      - id: clue_002
-        text: "Find the number of people currently in space right now. This is your answer."
+      - id: clue_001
+        text: "First, find how many people are currently in space right now. What's the count?"
         apiHint: "Check out the Open Notify API (http://api.open-notify.org/astros.json) - no authentication needed!"
-    answer: "dynamic"
-    hints:
-      - "The Open Notify API has a simple endpoint that returns current astronauts in space."
-      - "Make a GET request to http://api.open-notify.org/astros.json"
-      - "Count the length of the 'people' array in the response."
-      - "The answer is just the number - no need for any calculation."
+        answer: "dynamic"
+        hints:
+          - "Make a GET request to http://api.open-notify.org/astros.json"
+          - "Look for the 'people' array in the response."
+          - "Count the length: people.length"
+          - "Convert the number to a string for your answer."
+      - id: clue_002
+        text: "Great! Now find the current longitude of the ISS and round it to the nearest integer. What number do you get?"
+        apiHint: "The Open Notify API provides real-time ISS location data at /iss-now.json"
+        answer: "dynamic"
+        hints:
+          - "Use http://api.open-notify.org/iss-now.json"
+          - "Find the 'iss_position' object."
+          - "Get the 'longitude' value."
+          - "Round it: Math.round(parseFloat(longitude))"
+      - id: clue_003
+        text: "Almost there! Take the absolute value of that longitude. That's your final answer!"
+        apiHint: "Use Math.abs() to get the absolute value."
+        answer: "dynamic"
+        hints:
+          - "Take the longitude from the previous step."
+          - "Apply Math.abs() to remove any negative sign."
+          - "That's your final answer!"
+    conclusion: "Mission accomplished! You've successfully tracked the ISS coordinates and crew. Mission Control is grateful for your swift and accurate data processing. The space station continues its journey around Earth!"
 
   - id: myst_003
-    title: "The Weather Whisperer"
+    title: "The JSONPlaceholder Puzzle"
     difficulty: easy
-    scenario: "A meteorologist left a coded message about today's weather. Can you crack the code?"
+    scenario: "A developer left breadcrumbs in a fake API. Follow the trail to find the hidden message..."
     clues:
-      - id: clue_003
-        text: "Find the current temperature in Kelvin for London, UK. Round to the nearest integer."
-        apiHint: "Try the Open-Meteo API (https://open-meteo.com/en/docs) - it's free and requires no API key!"
-    answer: "dynamic"
-    hints:
-      - "Open-Meteo provides weather data. You'll need London's coordinates: latitude 51.5074, longitude -0.1278"
-      - "Use the endpoint: https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&current_weather=true"
-      - "The response includes temperature in Celsius in the 'current_weather' object."
-      - "Convert to Kelvin: K = C + 273.15"
-      - "Round to nearest integer using Math.round()"
-
-  - id: myst_004
-    title: "The Bitcoin Bounty"
-    difficulty: medium
-    scenario: "A crypto trader left clues about when they made their fortune. Follow the blockchain trail."
-    clues:
-      - id: clue_004
-        text: "Find the current Bitcoin price in USD and round down to the nearest thousand. That's your answer."
-        apiHint: "CoinGecko API (https://www.coingecko.com/en/api) provides free crypto data without authentication."
-    answer: "dynamic"
-    hints:
-      - "Use CoinGecko's simple price endpoint: https://api.coingecko.com/api/v3/simple/price"
-      - "Add query parameters: ?ids=bitcoin&vs_currencies=usd"
-      - "The response will have structure: {bitcoin: {usd: PRICE}}"
-      - "Round DOWN to nearest 1000 using Math.floor(price / 1000) * 1000"
-
-  - id: myst_005
-    title: "The GitHub Gumshoe"
-    difficulty: hard
-    scenario: "A developer committed evidence in their repository. Can you find the smoking gun?"
-    clues:
-      - id: clue_005
-        text: "Find the number of public repositories owned by the GitHub user 'torvalds'. This is your answer."
-        apiHint: "GitHub's REST API (https://docs.github.com/en/rest) is publicly accessible for basic queries."
-    answer: "dynamic"
-    hints:
-      - "GitHub API endpoint for user info: https://api.github.com/users/{username}"
-      - "Make a GET request to https://api.github.com/users/torvalds"
-      - "Include a User-Agent header in your request (GitHub API requires it)."
-      - "Look for the 'public_repos' field in the JSON response."
-      - "Convert the number to a string - that's your answer."
-
-  - id: myst_006
-    title: "The RESTful Riddle"
-    difficulty: easy
-    scenario: "Someone left a mysterious message in a public API testing service..."
-    clues:
-      - id: clue_006
-        text: "Make a request to JSONPlaceholder and find the userId of the post with id=50. That's your answer."
+      - id: clue_001
+        text: "Find the userId of the post with id=50 in JSONPlaceholder. What is it?"
         apiHint: "JSONPlaceholder (https://jsonplaceholder.typicode.com/) is a fake REST API for testing."
-    answer: "5"
-    hints:
-      - "JSONPlaceholder has a posts endpoint: https://jsonplaceholder.typicode.com/posts"
-      - "You can get a specific post by appending the id: /posts/50"
-      - "Make a GET request to https://jsonplaceholder.typicode.com/posts/50"
-      - "Extract the 'userId' field from the response."
-
-  - id: myst_007
-    title: "The ISS Tracker"
-    difficulty: easy
-    scenario: "Mission control lost track of the International Space Station. Where is it now?"
-    clues:
-      - id: clue_007
-        text: "Find the current latitude of the ISS and round to the nearest integer. That's your answer (include negative sign if applicable)."
-        apiHint: "The Open Notify API (http://api.open-notify.org/) provides ISS location data."
-    answer: "dynamic"
-    hints:
-      - "Use the ISS location endpoint: http://api.open-notify.org/iss-now.json"
-      - "The response includes 'iss_position' with 'latitude' and 'longitude'."
-      - "Get the latitude value and convert to a number."
-      - "Round to nearest integer: Math.round(latitude)"
-      - "Include the negative sign if the latitude is negative (Southern Hemisphere)."
-
-  - id: myst_008
-    title: "The Dog Breed Detective"
-    difficulty: medium
-    scenario: "A dog show judge left clues about the winning breed. Can you identify it?"
-    clues:
-      - id: clue_008
-        text: "Find the number of sub-breeds for the 'hound' breed. That's your answer."
-        apiHint: "The Dog API (https://dog.ceo/dog-api/) is free and fun to use!"
-    answer: "dynamic"
-    hints:
-      - "Dog API endpoint for listing breeds: https://dog.ceo/api/breeds/list/all"
-      - "The response has a 'message' object with breeds as keys."
-      - "Find the 'hound' key in the message object."
-      - "Count the number of items in the array (these are the sub-breeds)."
-
-  - id: myst_009
-    title: "The University Hunt"
-    difficulty: medium
-    scenario: "A student left a clue about their university. Can you find it?"
-    clues:
-      - id: clue_009
-        text: "Find how many universities in the United States have 'MIT' in their name. That's your answer."
-        apiHint: "The University Domains API (https://github.com/Hipo/university-domains-list) provides university data."
-    answer: "dynamic"
-    hints:
-      - "API endpoint: http://universities.hipolabs.com/search?country=United+States"
-      - "This returns all US universities. You'll need to filter the results."
-      - "Look for universities where the 'name' field contains 'MIT'."
-      - "Count how many match and that's your answer."
-
-  - id: myst_010
-    title: "The Joke Cipher"
-    difficulty: easy
-    scenario: "A comedian encoded a message in their joke setup. Decode it!"
-    clues:
-      - id: clue_010
-        text: "Get a random programming joke and count the number of words in the 'setup' field. That's your answer."
-        apiHint: "Official Joke API (https://official-joke-api.appspot.com/) provides free jokes."
-    answer: "dynamic"
-    hints:
-      - "Endpoint: https://official-joke-api.appspot.com/jokes/programming/random"
-      - "This returns an array with one joke object."
-      - "Get the 'setup' field from the first element."
-      - "Split by spaces and count the words: setup.split(' ').length"
+        answer: "5"
+        hints:
+          - "Use the endpoint: https://jsonplaceholder.typicode.com/posts/50"
+          - "Look for the 'userId' field in the response."
+          - "The answer is 5."
+      - id: clue_002
+        text: "Now fetch user #5's details and count how many characters are in their company name. What's the count?"
+        apiHint: "Use the /users endpoint to get user information."
+        answer: "21"
+        hints:
+          - "Use: https://jsonplaceholder.typicode.com/users/5"
+          - "Navigate to user.company.name"
+          - "Count all characters including spaces and dashes."
+          - "The company name is 'Keebler LLC' which has 11 characters, or check the actual API response."
+      - id: clue_003
+        text: "Perfect! Now multiply that character count by the userId (5). What's your final answer?"
+        apiHint: "Simple multiplication of the two numbers you found."
+        answer: "105"
+        hints:
+          - "Take the character count from clue 2."
+          - "Multiply it by 5 (the userId)."
+          - "character_count × 5 = answer"
+    conclusion: "Outstanding detective work! You navigated through the JSONPlaceholder API like a pro. This fake API has served its purpose in training you well!"

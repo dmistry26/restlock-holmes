@@ -1,7 +1,7 @@
 import * as yaml from 'js-yaml';
 import * as fs from 'fs';
 import * as path from 'path';
-import { MysteryData, Mystery } from './types';
+import { MysteryData, Mystery, Clue } from './types';
 
 class MysteryStore {
   private mysteries: MysteryData[] = [];
@@ -18,7 +18,7 @@ class MysteryStore {
     console.log(`✅ Loaded ${this.mysteries.length} mysteries from YAML`);
   }
 
-  // Get a random mystery by difficulty (stateless)
+  // Get a random mystery by difficulty (returns only the first clue)
   getRandomMystery(difficulty?: 'easy' | 'medium' | 'hard'): Mystery {
     const filtered = difficulty
       ? this.mysteries.filter(m => m.difficulty === difficulty)
@@ -31,13 +31,22 @@ class MysteryStore {
     const randomIndex = Math.floor(Math.random() * filtered.length);
     const mysteryData = filtered[randomIndex];
 
+    // Return only the first clue
+    const firstClue = mysteryData.clues[0];
+
     return {
       mysteryId: mysteryData.id,
       title: mysteryData.title,
       difficulty: mysteryData.difficulty,
       scenario: mysteryData.scenario,
-      clues: mysteryData.clues.map(c => ({ ...c, solved: false })),
-      hintsAvailable: mysteryData.hints.length,
+      currentClue: {
+        id: firstClue.id,
+        text: firstClue.text,
+        apiHint: firstClue.apiHint,
+        hintsAvailable: firstClue.hints.length
+      },
+      currentClueIndex: 0,
+      totalClues: mysteryData.clues.length,
       createdAt: new Date().toISOString()
     };
   }
@@ -47,31 +56,76 @@ class MysteryStore {
     return this.mysteries.find(m => m.id === mysteryId);
   }
 
-  // Get a random hint for a mystery
-  getRandomHint(mysteryId: string): string | null {
+  // Get a specific clue by mystery ID and clue ID
+  getClueById(mysteryId: string, clueId: string): { clue: MysteryData['clues'][0], index: number } | null {
     const mystery = this.getMysteryById(mysteryId);
-    if (!mystery || mystery.hints.length === 0) {
+    if (!mystery) return null;
+
+    const index = mystery.clues.findIndex(c => c.id === clueId);
+    if (index === -1) return null;
+
+    return { clue: mystery.clues[index], index };
+  }
+
+  // Get the next clue
+  getNextClue(mysteryId: string, currentClueId: string): Clue | null {
+    const mystery = this.getMysteryById(mysteryId);
+    if (!mystery) return null;
+
+    const currentIndex = mystery.clues.findIndex(c => c.id === currentClueId);
+    if (currentIndex === -1 || currentIndex === mystery.clues.length - 1) {
+      return null; // No next clue
+    }
+
+    const nextClue = mystery.clues[currentIndex + 1];
+    return {
+      id: nextClue.id,
+      text: nextClue.text,
+      apiHint: nextClue.apiHint,
+      hintsAvailable: nextClue.hints.length
+    };
+  }
+
+  // Get a random hint for a specific clue
+  getRandomHint(mysteryId: string, clueId: string): string | null {
+    const clueData = this.getClueById(mysteryId, clueId);
+    if (!clueData || !clueData.clue.hints || clueData.clue.hints.length === 0) {
       return null;
     }
 
-    const randomIndex = Math.floor(Math.random() * mystery.hints.length);
-    return mystery.hints[randomIndex];
+    const randomIndex = Math.floor(Math.random() * clueData.clue.hints.length);
+    return clueData.clue.hints[randomIndex];
   }
 
-  // Check if an answer is correct (stateless)
-  checkAnswer(mysteryId: string, answer: string): boolean {
-    const mystery = this.getMysteryById(mysteryId);
-    if (!mystery) {
-      return false;
-    }
+  // Check if an answer is correct for a specific clue
+  checkAnswer(mysteryId: string, clueId: string, answer: string): boolean {
+    const clueData = this.getClueById(mysteryId, clueId);
+    if (!clueData) return false;
+
+    const expectedAnswer = clueData.clue.answer;
 
     // For dynamic answers, we accept any non-empty numeric answer as correct
-    // In a real implementation, you'd validate against the actual API
-    if (mystery.answer === 'dynamic') {
+    if (expectedAnswer === 'dynamic') {
       return answer.length > 0 && /^-?\d+$/.test(answer);
     }
 
-    return answer === mystery.answer;
+    // Case-insensitive comparison for text answers
+    return answer.toLowerCase() === expectedAnswer.toLowerCase();
+  }
+
+  // Check if this is the last clue
+  isLastClue(mysteryId: string, clueId: string): boolean {
+    const mystery = this.getMysteryById(mysteryId);
+    if (!mystery) return false;
+
+    const clueIndex = mystery.clues.findIndex(c => c.id === clueId);
+    return clueIndex === mystery.clues.length - 1;
+  }
+
+  // Get the conclusion
+  getConclusion(mysteryId: string): string | null {
+    const mystery = this.getMysteryById(mysteryId);
+    return mystery?.conclusion ?? null;
   }
 
   // Get all mysteries (for debugging/admin purposes)

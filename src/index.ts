@@ -69,65 +69,65 @@ Each mystery requires reading API documentation and writing code to solve.`,
     }
   )
 
-  // GET /hint - Get a random hint for a mystery
+  // GET /hint - Get a random hint for a specific clue
   .get(
     "/hint",
     ({ query, set }) => {
-      const { mysteryId } = query;
+      const { mysteryId, clueId } = query;
 
-      if (!mysteryId) {
+      if (!mysteryId || !clueId) {
         set.status = 400;
         return {
           error: "MissingParameter",
-          message: "mysteryId is required",
+          message: "mysteryId and clueId are required",
         } satisfies ApiError;
       }
 
-      // Get a random hint (stateless)
-      const hint = store.getRandomHint(mysteryId);
+      // Get a random hint for this clue (stateless)
+      const hint = store.getRandomHint(mysteryId, clueId);
 
       if (!hint) {
         set.status = 404;
         return {
-          error: "MysteryNotFound",
-          message: "The specified mystery could not be found",
+          error: "ClueNotFound",
+          message: "The specified clue could not be found or has no hints available",
         } satisfies ApiError;
       }
 
       return {
         mysteryId,
+        clueId,
         hint,
       } satisfies Hint;
     },
     {
       detail: {
         tags: ["Game"],
-        summary: "Get a hint for the current mystery",
-        description: `Retrieves a random hint to help solve the mystery. Hints are unlimited and don't affect scoring.`,
+        summary: "Get a hint for the current clue",
+        description: `Retrieves a random hint to help solve the current clue. Hints are unlimited and don't affect scoring.`,
       },
       query: t.Object({
         mysteryId: t.String(),
+        clueId: t.String(),
       }),
     }
   )
 
-  // POST /submit - Submit an answer to a mystery
+  // POST /submit - Submit an answer to a clue
   .post(
     "/submit",
     ({ body, set }) => {
-      const { mysteryId, answer } = body;
+      const { mysteryId, clueId, answer } = body;
 
-      if (!mysteryId || answer === undefined) {
+      if (!mysteryId || !clueId || answer === undefined) {
         set.status = 400;
         return {
           error: "InvalidRequest",
-          message: "mysteryId and answer are required",
+          message: "mysteryId, clueId, and answer are required",
         } satisfies ApiError;
       }
 
-      // Check answer (stateless)
-      const isCorrect = store.checkAnswer(mysteryId, answer);
-
+      // Check if mystery and clue exist
       if (!store.getMysteryById(mysteryId)) {
         set.status = 404;
         return {
@@ -136,31 +136,62 @@ Each mystery requires reading API documentation and writing code to solve.`,
         } satisfies ApiError;
       }
 
-      if (isCorrect) {
+      if (!store.getClueById(mysteryId, clueId)) {
+        set.status = 404;
         return {
-          correct: true,
-          message: "Congratulations! You've solved the mystery!",
-          mysteryId,
-          solvedAt: new Date().toISOString(),
-          nextMysteryAvailable: true,
-        } satisfies SubmitResponse;
+          error: "ClueNotFound",
+          message: "The specified clue could not be found",
+        } satisfies ApiError;
+      }
+
+      // Check answer
+      const isCorrect = store.checkAnswer(mysteryId, clueId, answer);
+
+      if (isCorrect) {
+        // Check if this is the last clue
+        const isLast = store.isLastClue(mysteryId, clueId);
+
+        if (isLast) {
+          // Mystery solved!
+          const conclusion = store.getConclusion(mysteryId);
+          return {
+            correct: true,
+            message: "Correct! You've solved the entire mystery!",
+            mysteryId,
+            clueId,
+            mysterySolved: true,
+            conclusion: conclusion || "Congratulations on solving the mystery!",
+          } satisfies SubmitResponse;
+        } else {
+          // Get next clue
+          const nextClue = store.getNextClue(mysteryId, clueId);
+          return {
+            correct: true,
+            message: "Correct! Here's your next clue...",
+            mysteryId,
+            clueId,
+            nextClue: nextClue || undefined,
+            mysterySolved: false,
+          } satisfies SubmitResponse;
+        }
       } else {
         return {
           correct: false,
           message: "Not quite right. Try again, or request a hint!",
           mysteryId,
+          clueId,
         } satisfies SubmitResponse;
       }
     },
     {
       detail: {
         tags: ["Game"],
-        summary: "Submit an answer to a mystery",
-        description: `Submit your calculated answer to verify if you've solved the mystery correctly.
-The answer should be derived from processing external API data programmatically.`,
+        summary: "Submit an answer to a clue",
+        description: `Submit your answer to the current clue. If correct, you'll receive the next clue in the chain, or the conclusion if you've solved the mystery.`,
       },
       body: t.Object({
         mysteryId: t.String(),
+        clueId: t.String(),
         answer: t.String(),
       }),
     }
@@ -171,12 +202,12 @@ The answer should be derived from processing external API data programmatically.
     message: "Welcome to API Mystery Hunt!",
     endpoints: {
       mystery: "GET /mystery?difficulty=easy|medium|hard",
-      hint: "GET /hint?mysteryId={id}",
-      submit: "POST /submit {mysteryId, answer}",
+      hint: "GET /hint?mysteryId={id}&clueId={clueId}",
+      submit: "POST /submit {mysteryId, clueId, answer}",
       docs: "/swagger",
     },
     instructions:
-      "Start by getting a mystery, then use external APIs to solve it! Hints are unlimited.",
+      "Start by getting a mystery, solve each clue to get the next one, and use external APIs! Each clue has unlimited hints.",
   }))
 
   .listen(3000);
