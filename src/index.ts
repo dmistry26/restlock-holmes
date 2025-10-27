@@ -21,7 +21,7 @@ making API calls, and processing data programmatically.`,
           },
         ],
       },
-    })
+    }),
   )
 
   // GET /mystery - Get a new mystery to solve
@@ -42,7 +42,7 @@ making API calls, and processing data programmatically.`,
 
         // Get a random mystery (stateless)
         const mystery = store.getRandomMystery(
-          difficulty as "easy" | "medium" | "hard" | undefined
+          difficulty as "easy" | "medium" | "hard" | undefined,
         );
 
         return mystery satisfies Mystery;
@@ -63,10 +63,10 @@ Each mystery requires reading API documentation and writing code to solve.`,
       },
       query: t.Object({
         difficulty: t.Optional(
-          t.Union([t.Literal("easy"), t.Literal("medium"), t.Literal("hard")])
+          t.Union([t.Literal("easy"), t.Literal("medium"), t.Literal("hard")]),
         ),
       }),
-    }
+    },
   )
 
   // GET /hint - Get a random hint for a specific clue
@@ -90,7 +90,8 @@ Each mystery requires reading API documentation and writing code to solve.`,
         set.status = 404;
         return {
           error: "ClueNotFound",
-          message: "The specified clue could not be found or has no hints available",
+          message:
+            "The specified clue could not be found or has no hints available",
         } satisfies ApiError;
       }
 
@@ -110,7 +111,7 @@ Each mystery requires reading API documentation and writing code to solve.`,
         mysteryId: t.String(),
         clueId: t.String(),
       }),
-    }
+    },
   )
 
   // POST /submit - Submit an answer to a clue
@@ -194,25 +195,148 @@ Each mystery requires reading API documentation and writing code to solve.`,
         clueId: t.String(),
         answer: t.String(),
       }),
-    }
+    },
   )
 
   // Root endpoint
   .get("/", () => ({
     message: "Welcome to API Mystery Hunt!",
-    endpoints: {
-      mystery: "GET /mystery?difficulty=easy|medium|hard",
-      hint: "GET /hint?mysteryId={id}&clueId={clueId}",
-      submit: "POST /submit {mysteryId, clueId, answer}",
-      docs: "/swagger",
+    tagline: "Learn APIs by solving mysteries with code!",
+
+    howToPlay: {
+      step1: "Get a mystery: GET /mystery",
+      step2: "Read the clue and use external APIs to find the answer",
+      step3: "Submit your answer: POST /submit",
+      step4: "If correct, get the next clue. If stuck, get a hint!",
+      step5: "Solve all clues to complete the mystery",
     },
-    instructions:
-      "Start by getting a mystery, solve each clue to get the next one, and use external APIs! Each clue has unlimited hints.",
+
+    endpoints: {
+      getMystery: "GET /mystery?difficulty=easy|medium|hard",
+      getHint: "GET /hint?mysteryId={id}&clueId={clueId}",
+      submitAnswer: "POST /submit {mysteryId, clueId, answer}",
+      docs: "Go to /openapi in your browser",
+    },
+
+    fetchApiTutorial: {
+      title: "Using the Fetch API",
+      description: "Here's how to solve mysteries using JavaScript's fetch API",
+
+      example1_getMystery: {
+        description: "Step 1: Get a mystery to solve",
+        code: `// Get a random mystery
+const response = await fetch('http://localhost:3000/mystery');
+const mystery = await response.json();
+
+console.log(mystery.title);
+console.log(mystery.currentClue.text);
+// Save mysteryId and clueId - you'll need them!`.split("\n"),
+      },
+
+      example2_externalAPI: {
+        description: "Step 2: Use external APIs to find the answer",
+        code: `// Example: Using PokéAPI to find information
+const pokeResponse = await fetch('https://pokeapi.co/api/v2/pokemon/boldore');
+const pokeData = await pokeResponse.json();
+
+// Process the data to find your answer
+const answer = pokeData.game_indices.length.toString();
+console.log('My answer:', answer);`.split("\n"),
+      },
+
+      example3_submitAnswer: {
+        description: "Step 3: Submit your answer",
+        code: `// Submit your answer
+const submitResponse = await fetch('http://localhost:3000/submit', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    mysteryId: mystery.mysteryId,
+    clueId: mystery.currentClue.id,
+    answer: answer
+  })
+});
+
+const result = await submitResponse.json();
+console.log(result.message);
+
+if (result.correct && result.nextClue) {
+  console.log('Next clue:', result.nextClue.text);
+} else if (result.mysterySolved) {
+  console.log('Mystery solved!', result.conclusion);
+}`.split("\n"),
+      },
+
+      example4_getHint: {
+        description: "Optional: Get a hint if you're stuck",
+        code: `// Get a random hint for the current clue
+const hintResponse = await fetch(
+  \`http://localhost:3000/hint?mysteryId=\${mystery.mysteryId}&clueId=\${mystery.currentClue.id}\`
+);
+const hintData = await hintResponse.json();
+console.log('Hint:', hintData.hint);`.split("\n"),
+      },
+
+      fullExample: {
+        description: "Complete example: Solving a mystery",
+        code: `async function solveMystery() {
+  // 1. Get mystery
+  const mystery = await fetch('http://localhost:3000/mystery')
+    .then(r => r.json());
+
+  console.log('Mystery:', mystery.title);
+  console.log('Clue:', mystery.currentClue.text);
+
+  // 2. Use the clue's apiHint to figure out which external API to use
+  console.log('API Hint:', mystery.currentClue.apiHint);
+
+  // 3. Query external API (example with Dog API)
+  const dogData = await fetch('https://dog.ceo/api/breeds/list/all')
+    .then(r => r.json());
+
+  // 4. Process data to find answer
+  const answer = dogData.message.hound.length.toString();
+
+  // 5. Submit answer
+  const result = await fetch('http://localhost:3000/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      mysteryId: mystery.mysteryId,
+      clueId: mystery.currentClue.id,
+      answer: answer
+    })
+  }).then(r => r.json());
+
+  console.log(result.message);
+  return result;
+}
+
+solveMystery();`.split("\n"),
+      },
+    },
+
+    tips: [
+      "Read the clue carefully - it tells you exactly what to find",
+      "Use the apiHint to know which external API to query",
+      "Process the API response to extract the specific data you need",
+      "Answers are case-insensitive strings",
+      "Each clue has unlimited hints - use GET /hint when stuck",
+      "Check the /openapi docs for full API reference",
+    ],
+
+    resources: {
+      documentation: "See /openapi",
+      exampleSolutions: "See /tests directory for complete solutions",
+      mysteryGuide: "See /docs/README.md for creating mysteries",
+    },
   }))
 
   .listen(3000);
 
 console.log(
-  `🦊 Elysia is running at http://${app.server?.hostname}:${app.server?.port}`
+  `🦊 Elysia is running at http://${app.server?.hostname}:${app.server?.port}`,
 );
-console.log(`📚 API Documentation: http://${app.server?.hostname}:${app.server?.port}/swagger`);
+console.log(
+  `📚 API Documentation: http://${app.server?.hostname}:${app.server?.port}/openapi`,
+);
