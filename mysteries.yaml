@@ -12,7 +12,6 @@ mysteries:
           - "Use the /type/rock endpoint to get all rock-type Pokémon."
           - "Filter the list for Pokémon names ending in 'dore'."
           - "Count the letters - you need exactly 7."
-          - "The answer is 'boldore'."
       - id: clue_002
         text: "Excellent! Now get Boldore's details and find the number of game versions it appears in. Count the entries in the game_indices array. What number do you get?"
         apiHint: "Use the PokéAPI /pokemon/{name} endpoint to get detailed information."
@@ -21,7 +20,6 @@ mysteries:
           - "Use the endpoint: https://pokeapi.co/api/v2/pokemon/boldore"
           - "Look for the 'game_indices' array in the response."
           - "Count how many entries are in that array."
-          - "The answer is 14."
       - id: clue_003
         text: "Perfect! Now take that number (14) and multiply it by Boldore's base HP stat. What's your final answer?"
         apiHint: "Look in the 'stats' array for the stat with name 'hp' and get its base_stat value."
@@ -30,7 +28,6 @@ mysteries:
           - "In the same Boldore data, find the 'stats' array."
           - "Look for the stat where stat.name is 'hp'."
           - "Get the base_stat value (it's 25)."
-          - "Multiply: 14 × 25 = 350"
     conclusion: "Incredible work, detective! You've cracked the trainer's code. The number 350 represents the total power level of their prized Boldore across all its appearances. The trainer wanted to ensure only a true Pokémon master could decode their secret!"
 
   - id: myst_002
