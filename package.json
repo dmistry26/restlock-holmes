@@ -3,7 +3,8 @@
   "version": "1.0.50",
   "scripts": {
     "test": "bun run tests/run-all.ts",
-    "dev": "bun run --watch src/index.ts"
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts"
   },
   "dependencies": {
     "@elysiajs/openapi": "^1.4.11",
