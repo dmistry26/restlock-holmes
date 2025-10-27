@@ -1,88 +1,82 @@
-import { MysteryState } from './types';
-import { MysteryDefinition, getRandomMystery } from './mysteries';
+import * as yaml from 'js-yaml';
+import * as fs from 'fs';
+import * as path from 'path';
+import { MysteryData, Mystery } from './types';
 
-// In-memory storage for active mysteries
-// In production, you'd use a database
 class MysteryStore {
-  private activeMysteries: Map<string, MysteryState> = new Map();
-  private readonly MAX_ATTEMPTS = 5;
+  private mysteries: MysteryData[] = [];
 
-  createMystery(difficulty?: 'easy' | 'medium' | 'hard'): MysteryState {
-    const mysteryDef = getRandomMystery(difficulty);
+  constructor() {
+    this.loadMysteries();
+  }
 
-    const state: MysteryState = {
-      mystery: mysteryDef.mystery,
-      answer: mysteryDef.answer,
-      hints: mysteryDef.hints,
-      hintsUsed: 0,
-      attempts: 0,
-      maxAttempts: this.MAX_ATTEMPTS,
-      solved: false,
-      startedAt: new Date().toISOString()
+  private loadMysteries() {
+    const yamlPath = path.join(process.cwd(), 'mysteries.yaml');
+    const fileContents = fs.readFileSync(yamlPath, 'utf8');
+    const data = yaml.load(fileContents) as { mysteries: MysteryData[] };
+    this.mysteries = data.mysteries;
+    console.log(`✅ Loaded ${this.mysteries.length} mysteries from YAML`);
+  }
+
+  // Get a random mystery by difficulty (stateless)
+  getRandomMystery(difficulty?: 'easy' | 'medium' | 'hard'): Mystery {
+    const filtered = difficulty
+      ? this.mysteries.filter(m => m.difficulty === difficulty)
+      : this.mysteries;
+
+    if (filtered.length === 0) {
+      throw new Error('No mysteries found for the specified difficulty');
+    }
+
+    const randomIndex = Math.floor(Math.random() * filtered.length);
+    const mysteryData = filtered[randomIndex];
+
+    return {
+      mysteryId: mysteryData.id,
+      title: mysteryData.title,
+      difficulty: mysteryData.difficulty,
+      scenario: mysteryData.scenario,
+      clues: mysteryData.clues.map(c => ({ ...c, solved: false })),
+      hintsAvailable: mysteryData.hints.length,
+      createdAt: new Date().toISOString()
     };
-
-    this.activeMysteries.set(mysteryDef.mystery.mysteryId, state);
-    return state;
   }
 
-  getMystery(mysteryId: string): MysteryState | undefined {
-    return this.activeMysteries.get(mysteryId);
+  // Get a specific mystery by ID
+  getMysteryById(mysteryId: string): MysteryData | undefined {
+    return this.mysteries.find(m => m.id === mysteryId);
   }
 
-  useHint(mysteryId: string): boolean {
-    const state = this.activeMysteries.get(mysteryId);
-    if (!state) return false;
-
-    if (state.hintsUsed < state.hints.length) {
-      state.hintsUsed++;
-      return true;
-    }
-    return false;
-  }
-
-  submitAnswer(mysteryId: string, answer: string): { correct: boolean; state: MysteryState } {
-    const state = this.activeMysteries.get(mysteryId);
-    if (!state) {
-      throw new Error('Mystery not found');
+  // Get a random hint for a mystery
+  getRandomHint(mysteryId: string): string | null {
+    const mystery = this.getMysteryById(mysteryId);
+    if (!mystery || mystery.hints.length === 0) {
+      return null;
     }
 
-    state.attempts++;
+    const randomIndex = Math.floor(Math.random() * mystery.hints.length);
+    return mystery.hints[randomIndex];
+  }
 
-    // For dynamic answers, we accept any non-empty answer as correct
+  // Check if an answer is correct (stateless)
+  checkAnswer(mysteryId: string, answer: string): boolean {
+    const mystery = this.getMysteryById(mysteryId);
+    if (!mystery) {
+      return false;
+    }
+
+    // For dynamic answers, we accept any non-empty numeric answer as correct
     // In a real implementation, you'd validate against the actual API
-    const isCorrect = state.answer === 'dynamic'
-      ? answer.length > 0 && /^\d+$/.test(answer)
-      : answer === state.answer;
-
-    if (isCorrect) {
-      state.solved = true;
-      state.solvedAt = new Date().toISOString();
+    if (mystery.answer === 'dynamic') {
+      return answer.length > 0 && /^-?\d+$/.test(answer);
     }
 
-    return { correct: isCorrect, state };
+    return answer === mystery.answer;
   }
 
-  deleteMystery(mysteryId: string): boolean {
-    return this.activeMysteries.delete(mysteryId);
-  }
-
-  // Helper to calculate time to solve
-  getTimeToSolve(startedAt: string, solvedAt: string): string {
-    const start = new Date(startedAt).getTime();
-    const end = new Date(solvedAt).getTime();
-    const diffMs = end - start;
-
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    } else if (minutes > 0) {
-      return `${minutes}m ${seconds}s`;
-    } else {
-      return `${seconds}s`;
-    }
+  // Get all mysteries (for debugging/admin purposes)
+  getAllMysteries(): MysteryData[] {
+    return this.mysteries;
   }
 }
 

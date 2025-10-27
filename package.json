@@ -7,9 +7,11 @@
   },
   "dependencies": {
     "@elysiajs/openapi": "^1.4.11",
-    "elysia": "latest"
+    "elysia": "latest",
+    "js-yaml": "^4.1.0"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "bun-types": "latest"
   },
   "module": "src/index.js"

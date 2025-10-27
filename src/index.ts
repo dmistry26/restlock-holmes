@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import { openapi } from "@elysiajs/openapi";
 import { store } from "./store";
-import { Mystery, Hint, SubmitRequest, SubmitResponse, ApiError } from "./types";
+import { Mystery, Hint, ApiError, SubmitResponse } from "./types";
 
 const app = new Elysia()
   .use(
@@ -40,13 +40,12 @@ making API calls, and processing data programmatically.`,
           } satisfies ApiError;
         }
 
-        // Create a new mystery
-        const state = store.createMystery(
+        // Get a random mystery (stateless)
+        const mystery = store.getRandomMystery(
           difficulty as "easy" | "medium" | "hard" | undefined
         );
 
-        // Return the mystery (without answer and hints)
-        return state.mystery satisfies Mystery;
+        return mystery satisfies Mystery;
       } catch (error) {
         set.status = 500;
         return {
@@ -70,11 +69,11 @@ Each mystery requires reading API documentation and writing code to solve.`,
     }
   )
 
-  // GET /hint - Get a hint for the current mystery
+  // GET /hint - Get a random hint for a mystery
   .get(
     "/hint",
     ({ query, set }) => {
-      const { mysteryId, hintLevel = 1 } = query;
+      const { mysteryId } = query;
 
       if (!mysteryId) {
         set.status = 400;
@@ -84,18 +83,10 @@ Each mystery requires reading API documentation and writing code to solve.`,
         } satisfies ApiError;
       }
 
-      // Validate hint level
-      if (hintLevel < 1 || hintLevel > 3) {
-        set.status = 400;
-        return {
-          error: "InvalidHintLevel",
-          message: "Hint level must be between 1 and 3",
-        } satisfies ApiError;
-      }
+      // Get a random hint (stateless)
+      const hint = store.getRandomHint(mysteryId);
 
-      // Get the mystery state
-      const state = store.getMystery(mysteryId);
-      if (!state) {
+      if (!hint) {
         set.status = 404;
         return {
           error: "MysteryNotFound",
@@ -103,51 +94,19 @@ Each mystery requires reading API documentation and writing code to solve.`,
         } satisfies ApiError;
       }
 
-      // Check if hints are available
-      const hintsRemaining = state.hints.length - state.hintsUsed;
-      if (hintsRemaining === 0) {
-        set.status = 403;
-        return {
-          error: "NoHintsRemaining",
-          message: "No hints remaining for this mystery",
-        } satisfies ApiError;
-      }
-
-      // Check if the requested hint level is available
-      if (hintLevel > state.hintsUsed + 1) {
-        set.status = 400;
-        return {
-          error: "InvalidHintLevel",
-          message: `You must request hints in order. Next available hint is level ${
-            state.hintsUsed + 1
-          }`,
-        } satisfies ApiError;
-      }
-
-      // Use a hint if requesting a new one
-      if (hintLevel === state.hintsUsed + 1) {
-        store.useHint(mysteryId);
-      }
-
-      // Return the hint
-      const hintText = state.hints[hintLevel - 1];
       return {
         mysteryId,
-        hintLevel,
-        hint: hintText,
-        hintsRemaining: state.hints.length - state.hintsUsed,
+        hint,
       } satisfies Hint;
     },
     {
       detail: {
         tags: ["Game"],
         summary: "Get a hint for the current mystery",
-        description: `Retrieves a hint to help solve the current mystery. Each mystery has a
-limited number of hints available.`,
+        description: `Retrieves a random hint to help solve the mystery. Hints are unlimited and don't affect scoring.`,
       },
       query: t.Object({
         mysteryId: t.String(),
-        hintLevel: t.Optional(t.Number({ minimum: 1, maximum: 3 })),
       }),
     }
   )
@@ -166,9 +125,10 @@ limited number of hints available.`,
         } satisfies ApiError;
       }
 
-      // Get the mystery state
-      const state = store.getMystery(mysteryId);
-      if (!state) {
+      // Check answer (stateless)
+      const isCorrect = store.checkAnswer(mysteryId, answer);
+
+      if (!store.getMysteryById(mysteryId)) {
         set.status = 404;
         return {
           error: "MysteryNotFound",
@@ -176,69 +136,19 @@ limited number of hints available.`,
         } satisfies ApiError;
       }
 
-      // Check if already solved
-      if (state.solved) {
-        set.status = 400;
-        return {
-          error: "AlreadySolved",
-          message: "This mystery has already been solved",
-        } satisfies ApiError;
-      }
-
-      // Check if max attempts reached
-      if (state.attempts >= state.maxAttempts) {
-        set.status = 429;
-        return {
-          error: "TooManyAttempts",
-          message: "Maximum number of attempts exceeded for this mystery",
-        } satisfies ApiError;
-      }
-
-      // Submit the answer
-      const result = store.submitAnswer(mysteryId, answer);
-
-      if (result.correct) {
-        // Correct answer
-        const timeToSolve = store.getTimeToSolve(
-          result.state.startedAt,
-          result.state.solvedAt!
-        );
-
+      if (isCorrect) {
         return {
           correct: true,
           message: "Congratulations! You've solved the mystery!",
           mysteryId,
-          solvedAt: result.state.solvedAt,
+          solvedAt: new Date().toISOString(),
           nextMysteryAvailable: true,
-          stats: {
-            timeToSolve,
-            hintsUsed: result.state.hintsUsed,
-            attemptsUsed: result.state.attempts,
-          },
         } satisfies SubmitResponse;
       } else {
-        // Incorrect answer
-        const attemptsRemaining = state.maxAttempts - state.attempts;
-
-        let message = "Not quite right. ";
-        if (attemptsRemaining > 0) {
-          message += `You have ${attemptsRemaining} attempt${
-            attemptsRemaining === 1 ? "" : "s"
-          } remaining.`;
-        } else {
-          message += "No attempts remaining.";
-        }
-
-        // Add a helpful hint based on the mystery
-        if (state.mystery.mysteryId === "myst_001") {
-          message += " Remember to sum ALL game_indices values.";
-        }
-
         return {
           correct: false,
-          message,
+          message: "Not quite right. Try again, or request a hint!",
           mysteryId,
-          attemptsRemaining,
         } satisfies SubmitResponse;
       }
     },
@@ -261,12 +171,12 @@ The answer should be derived from processing external API data programmatically.
     message: "Welcome to API Mystery Hunt!",
     endpoints: {
       mystery: "GET /mystery?difficulty=easy|medium|hard",
-      hint: "GET /hint?mysteryId={id}&hintLevel={1-3}",
+      hint: "GET /hint?mysteryId={id}",
       submit: "POST /submit {mysteryId, answer}",
       docs: "/swagger",
     },
     instructions:
-      "Start by getting a mystery, then use external APIs to solve it!",
+      "Start by getting a mystery, then use external APIs to solve it! Hints are unlimited.",
   }))
 
   .listen(3000);
