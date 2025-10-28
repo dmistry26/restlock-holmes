@@ -1,29 +1,29 @@
 mysteries:
   - id: myst_001
-    title: "The Evolved Enigma"
+    title: 'The Evolved Enigma'
     difficulty: medium
-    scenario: "A mysterious trainer left behind cryptic notes about their favorite Pokémon. Each clue leads to the next..."
+    scenario: 'A mysterious trainer left behind cryptic notes about their favorite Pokémon. Each clue leads to the next...'
     clues:
       - id: clue_001
-        text: "First, find all rock-type Pokémon and locate the one whose name ends in 'dore' and has exactly 7 letters. What is its name?"
-        apiHint: "You'll need to explore the PokéAPI (https://pokeapi.co/docs/v2) to solve this puzzle."
-        answer: "boldore"
+        text: "First, find all rock-type Pokemon and locate the one whose name ends in 'dore' and has exactly 7 letters. What is its name?"
+        apiHint: "You'll need to explore the PokeAPI (https://pokeapi.co/docs/v2) to solve this puzzle."
+        answer: 'boldore'
         hints:
-          - "Use the /type/rock endpoint to get all rock-type Pokémon."
+          - 'Use the /type/rock endpoint to get all rock-type Pokémon.'
           - "Filter the list for Pokémon names ending in 'dore'."
-          - "Count the letters - you need exactly 7."
+          - 'Count the letters - you need exactly 7.'
       - id: clue_002
         text: "Excellent! Now get Boldore's details and find the number of game versions it appears in. Count the entries in the game_indices array. What number do you get?"
-        apiHint: "Use the PokéAPI /pokemon/{name} endpoint to get detailed information."
-        answer: "14"
+        apiHint: 'Use the PokéAPI /pokemon/{name} endpoint to get detailed information.'
+        answer: '14'
         hints:
-          - "Use the endpoint: https://pokeapi.co/api/v2/pokemon/boldore"
+          - 'Use the endpoint: https://pokeapi.co/api/v2/pokemon/boldore'
           - "Look for the 'game_indices' array in the response."
-          - "Count how many entries are in that array."
+          - 'Count how many entries are in that array.'
       - id: clue_003
         text: "Perfect! Now take that number (14) and multiply it by Boldore's base HP stat. What's your final answer?"
         apiHint: "Look in the 'stats' array for the stat with name 'hp' and get its base_stat value."
-        answer: "350"
+        answer: '350'
         hints:
           - "In the same Boldore data, find the 'stats' array."
           - "Look for the stat where stat.name is 'hp'."
@@ -31,63 +31,63 @@ mysteries:
     conclusion: "Incredible work, detective! You've cracked the trainer's code. The number 350 represents the total power level of their prized Boldore across all its appearances. The trainer wanted to ensure only a true Pokémon master could decode their secret!"
 
   - id: myst_002
-    title: "The Dog Breed Mystery"
+    title: 'The Dog Breed Mystery'
     difficulty: easy
-    scenario: "A dog show judge left behind a coded message about the winning breeds. Can you crack the code?"
+    scenario: 'A dog show judge left behind a coded message about the winning breeds. Can you crack the code?'
     clues:
       - id: clue_001
         text: "First, find how many sub-breeds the 'hound' breed has. What's the count?"
-        apiHint: "Check out the Dog API (https://dog.ceo/dog-api/) - no authentication needed!"
-        answer: "13"
+        apiHint: 'Check out the Dog API (https://dog.ceo/dog-api/) - no authentication needed!'
+        answer: '13'
         hints:
-          - "Use the Dog API endpoint: https://dog.ceo/api/breeds/list/all"
+          - 'Use the Dog API endpoint: https://dog.ceo/api/breeds/list/all'
           - "Look for the 'hound' key in the message object."
-          - "Count the number of items in the hound array."
-          - "The answer is 13."
+          - 'Count the number of items in the hound array.'
+          - 'The answer is 13.'
       - id: clue_002
         text: "Good! Now find the sub-breed of 'hound' that comes FIRST alphabetically. What is it?"
-        apiHint: "Sort the sub-breeds alphabetically and pick the first one."
-        answer: "afghan"
+        apiHint: 'Sort the sub-breeds alphabetically and pick the first one.'
+        answer: 'afghan'
         hints:
-          - "Get the hound sub-breeds array from the previous step."
-          - "Sort them alphabetically."
+          - 'Get the hound sub-breeds array from the previous step.'
+          - 'Sort them alphabetically.'
           - "The first one is 'afghan'."
       - id: clue_003
         text: "Perfect! Count how many letters are in 'afghan'. That's your final answer!"
-        apiHint: "Simple string length count."
-        answer: "6"
+        apiHint: 'Simple string length count.'
+        answer: '6'
         hints:
           - "Count the characters in 'afghan'."
-          - "a-f-g-h-a-n = 6 letters."
+          - 'a-f-g-h-a-n = 6 letters.'
     conclusion: "Excellent detective work! The Afghan Hound was indeed the judge's favorite. You've successfully decoded the canine cipher!"
 
   - id: myst_003
-    title: "The JSONPlaceholder Puzzle"
+    title: 'The JSONPlaceholder Puzzle'
     difficulty: easy
-    scenario: "A developer left breadcrumbs in a fake API. Follow the trail to find the hidden message..."
+    scenario: 'A developer left breadcrumbs in a fake API. Follow the trail to find the hidden message...'
     clues:
       - id: clue_001
-        text: "Find the userId of the post with id=50 in JSONPlaceholder. What is it?"
-        apiHint: "JSONPlaceholder (https://jsonplaceholder.typicode.com/) is a fake REST API for testing."
-        answer: "5"
+        text: 'Find the userId of the post with id=50 in JSONPlaceholder. What is it?'
+        apiHint: 'JSONPlaceholder (https://jsonplaceholder.typicode.com/) is a fake REST API for testing.'
+        answer: '5'
         hints:
-          - "Use the endpoint: https://jsonplaceholder.typicode.com/posts/50"
+          - 'Use the endpoint: https://jsonplaceholder.typicode.com/posts/50'
           - "Look for the 'userId' field in the response."
-          - "The answer is 5."
+          - 'The answer is 5.'
       - id: clue_002
         text: "Now fetch user #5's name. What is their first name?"
-        apiHint: "Use the /users endpoint to get user information."
-        answer: "Chelsey"
+        apiHint: 'Use the /users endpoint to get user information.'
+        answer: 'Chelsey'
         hints:
-          - "Use: https://jsonplaceholder.typicode.com/users/5"
+          - 'Use: https://jsonplaceholder.typicode.com/users/5'
           - "Look at the 'name' field."
-          - "The first name is before the space."
+          - 'The first name is before the space.'
           - "It's 'Chelsey'."
       - id: clue_003
         text: "Perfect! Count how many letters are in that first name. What's your answer?"
-        apiHint: "Simple string length count."
-        answer: "7"
+        apiHint: 'Simple string length count.'
+        answer: '7'
         hints:
           - "Count the letters in 'Chelsey'."
-          - "C-h-e-l-s-e-y = 7 letters."
-    conclusion: "Outstanding detective work! You navigated through the JSONPlaceholder API like a pro. Chelsey Dietrich (user #5) was the key to unlocking this mystery!"
+          - 'C-h-e-l-s-e-y = 7 letters.'
+    conclusion: 'Outstanding detective work! You navigated through the JSONPlaceholder API like a pro. Chelsey Dietrich (user #5) was the key to unlocking this mystery!'
