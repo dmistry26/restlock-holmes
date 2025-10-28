@@ -1,6 +1,5 @@
 import * as yaml from 'js-yaml';
-import * as fs from 'fs';
-import * as path from 'path';
+import yamlText from '$lib/assets/mysteries.yaml?raw';
 import type { MysteryData, Mystery, Clue } from './types';
 
 class MysteryStore {
@@ -11,9 +10,7 @@ class MysteryStore {
 	}
 
 	private loadMysteries() {
-		const yamlPath = path.join(process.cwd(), 'mysteries.yaml');
-		const fileContents = fs.readFileSync(yamlPath, 'utf8');
-		const data = yaml.load(fileContents) as { mysteries: MysteryData[] };
+		const data = yaml.load(yamlText) as { mysteries: MysteryData[] };
 		this.mysteries = data.mysteries;
 		console.log(`✅ Loaded ${this.mysteries.length} mysteries from YAML`);
 	}
