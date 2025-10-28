@@ -69,7 +69,9 @@ Each mystery requires reading API documentation and writing code to solve.
 Optionally specify a mysteryId to get a specific mystery (useful for testing).`
 			},
 			query: t.Object({
-				difficulty: t.Optional(t.Union([t.Literal('easy'), t.Literal('medium'), t.Literal('hard')])),
+				difficulty: t.Optional(
+					t.Union([t.Literal('easy'), t.Literal('medium'), t.Literal('hard')])
+				),
 				mysteryId: t.Optional(t.String())
 			})
 		}
@@ -205,48 +207,50 @@ Optionally specify a mysteryId to get a specific mystery (useful for testing).`
 	)
 
 	// Root endpoint
-	.get('/', () => ({
-		message: 'Welcome to RESTlock Holmes!',
-		tagline: 'Learn APIs by solving mysteries with code!',
+	.get(
+		'/',
+		() => ({
+			message: 'Welcome to RESTlock Holmes!',
+			tagline: 'Learn APIs by solving mysteries with code!',
 
-		howToPlay: [
-			'1. Get a mystery: GET /mystery',
-			'2. Read the clue and use external APIs to find the answer',
-			'3. Submit your answer: POST /submit',
-			'4. If correct, get the next clue. If stuck, get a hint!',
-			'5. Solve all clues to complete the mystery',
-			'Check out the documentation for more details (at /openapi)'
-		],
-		fetchApiTutorial: {
-			title: 'Using the Fetch API',
-			description: "Here's how to solve mysteries using JavaScript's fetch API",
+			howToPlay: [
+				'1. Get a mystery: GET /mystery',
+				'2. Read the clue and use external APIs to find the answer',
+				'3. Submit your answer: POST /submit',
+				'4. If correct, get the next clue. If stuck, get a hint!',
+				'5. Solve all clues to complete the mystery',
+				'Check out the documentation for more details (at /openapi)'
+			],
+			fetchApiTutorial: {
+				title: 'Using the Fetch API',
+				description: "Here's how to solve mysteries using JavaScript's fetch API",
 
-			steps: [
-				{
-					description: 'Step 1: Get a mystery to solve',
-					code: toCode`// Get a random mystery
+				steps: [
+					{
+						description: 'Step 1: Get a mystery to solve',
+						code: toCode`// Get a random mystery
 const response = await fetch('http://localhost:3000/mystery');
 const mystery = await response.json();
 
 console.log(mystery.title);
 console.log(mystery.currentClue.text);
 // Save mysteryId and clueId - you'll need them!`
-				},
+					},
 
-				{
-					description: 'Step 2: Use external APIs to find the answer',
-					code: toCode`// Example: Using PokeAPI to find information
+					{
+						description: 'Step 2: Use external APIs to find the answer',
+						code: toCode`// Example: Using PokeAPI to find information
 const pokeResponse = await fetch('https://pokeapi.co/api/v2/pokemon/pikachu');
 const pokeData = await pokeResponse.json();
 
 // Process the data to find your answer
 const answer = pokeData.game_indices.length.toString();
 console.log('My answer:', answer);`
-				},
+					},
 
-				{
-					description: 'Step 3: Submit your answer',
-					code: toCode`// Submit your answer
+					{
+						description: 'Step 3: Submit your answer',
+						code: toCode`// Submit your answer
 const submitResponse = await fetch('http://localhost:3000/submit', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
@@ -265,10 +269,10 @@ if (result.correct && result.nextClue) {
 } else if (result.mysterySolved) {
   console.log('Mystery solved!', result.conclusion);
 }`
-				},
-				{
-					description: "Optional: Get a hint if you're stuck",
-					code: toCode`// Get the first hint (no index parameter)
+					},
+					{
+						description: "Optional: Get a hint if you're stuck",
+						code: toCode`// Get the first hint (no index parameter)
 const hintResponse = await fetch(
   \`http://localhost:3000/hint?mysteryId=\${mystery.mysteryId}&clueId=\${mystery.currentClue.id}\`
 );
@@ -281,12 +285,12 @@ const hint2Response = await fetch(
 );
 const hint2Data = await hint2Response.json();
 console.log('Hint 2:', hint2Data.hint);`
-				}
-			],
+					}
+				],
 
-			fullExample: {
-				description: 'Complete example: Solving a mystery',
-				code: toCode`async function solveMystery() {
+				fullExample: {
+					description: 'Complete example: Solving a mystery',
+					code: toCode`async function solveMystery() {
   // 1. Get mystery
   const mystery = await fetch('http://localhost:3000/mystery')
     .then(r => r.json());
@@ -320,23 +324,29 @@ console.log('Hint 2:', hint2Data.hint);`
 }
 
 solveMystery();`
+				}
+			},
+
+			tips: [
+				'Read the clue carefully - it tells you exactly what to find',
+				'Use the apiHint to know which external API to query',
+				'Process the API response to extract the specific data you need',
+				'Answers are case-insensitive strings',
+				'Each clue has multiple hints - use GET /hint to get hints sequentially',
+				'Hints are indexed starting at 0. Omit the index to get the first hint',
+				"When you run out of hints, the API will return 'No more hints.'",
+				'Check the /openapi docs for full API reference'
+			]
+
+			// resources: {
+			//   documentation: "See /openapi",
+			//   exampleSolutions: "See /tests directory for complete solutions",
+			//   mysteryGuide: "See /docs/README.md for creating mysteries",
+			// },
+		}),
+		{
+			detail: {
+				hide: true
 			}
-		},
-
-		tips: [
-			'Read the clue carefully - it tells you exactly what to find',
-			'Use the apiHint to know which external API to query',
-			'Process the API response to extract the specific data you need',
-			'Answers are case-insensitive strings',
-			'Each clue has multiple hints - use GET /hint to get hints sequentially',
-			'Hints are indexed starting at 0. Omit the index to get the first hint',
-			"When you run out of hints, the API will return 'No more hints.'",
-			'Check the /openapi docs for full API reference'
-		]
-
-		// resources: {
-		//   documentation: "See /openapi",
-		//   exampleSolutions: "See /tests directory for complete solutions",
-		//   mysteryGuide: "See /docs/README.md for creating mysteries",
-		// },
-	}));
+		}
+	);
