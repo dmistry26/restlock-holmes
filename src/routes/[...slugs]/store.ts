@@ -18,18 +18,29 @@ class MysteryStore {
 		console.log(`✅ Loaded ${this.mysteries.length} mysteries from YAML`);
 	}
 
-	// Get a random mystery by difficulty (returns only the first clue)
-	getRandomMystery(difficulty?: 'easy' | 'medium' | 'hard'): Mystery {
-		const filtered = difficulty
-			? this.mysteries.filter((m) => m.difficulty === difficulty)
-			: this.mysteries;
+	// Get a mystery by ID or randomly by difficulty (returns only the first clue)
+	getRandomMystery(difficulty?: 'easy' | 'medium' | 'hard', mysteryId?: string): Mystery {
+		let mysteryData: MysteryData | undefined;
 
-		if (filtered.length === 0) {
-			throw new Error('No mysteries found for the specified difficulty');
+		// If mysteryId is specified, get that specific mystery
+		if (mysteryId) {
+			mysteryData = this.getMysteryById(mysteryId);
+			if (!mysteryData) {
+				throw new Error(`Mystery with ID '${mysteryId}' not found`);
+			}
+		} else {
+			// Otherwise, get a random mystery by difficulty
+			const filtered = difficulty
+				? this.mysteries.filter((m) => m.difficulty === difficulty)
+				: this.mysteries;
+
+			if (filtered.length === 0) {
+				throw new Error('No mysteries found for the specified difficulty');
+			}
+
+			const randomIndex = Math.floor(Math.random() * filtered.length);
+			mysteryData = filtered[randomIndex];
 		}
-
-		const randomIndex = Math.floor(Math.random() * filtered.length);
-		const mysteryData = filtered[randomIndex];
 
 		// Return only the first clue
 		const firstClue = mysteryData.clues[0];

@@ -34,7 +34,7 @@ making API calls, and processing data programmatically.`
 		'/mystery',
 		({ query, set }) => {
 			try {
-				const { difficulty } = query;
+				const { difficulty, mysteryId } = query;
 
 				// Validate difficulty if provided
 				if (difficulty && !['easy', 'medium', 'hard'].includes(difficulty)) {
@@ -45,17 +45,18 @@ making API calls, and processing data programmatically.`
 					} satisfies ApiError;
 				}
 
-				// Get a random mystery (stateless)
+				// Get a mystery (by ID if specified, otherwise random)
 				const mystery = store.getRandomMystery(
-					difficulty as 'easy' | 'medium' | 'hard' | undefined
+					difficulty as 'easy' | 'medium' | 'hard' | undefined,
+					mysteryId
 				);
 
 				return mystery satisfies Mystery;
 			} catch (error) {
-				set.status = 500;
+				set.status = 404;
 				return {
-					error: 'InternalServerError',
-					message: 'Failed to create mystery'
+					error: 'MysteryNotFound',
+					message: error instanceof Error ? error.message : 'Failed to retrieve mystery'
 				} satisfies ApiError;
 			}
 		},
@@ -63,11 +64,13 @@ making API calls, and processing data programmatically.`
 			detail: {
 				tags: ['Game'],
 				summary: 'Get a new mystery to solve',
-				description: `Retrieves a new mystery case with clues that point to external APIs.
-Each mystery requires reading API documentation and writing code to solve.`
+				description: `Retrieves a mystery case with clues that point to external APIs.
+Each mystery requires reading API documentation and writing code to solve.
+Optionally specify a mysteryId to get a specific mystery (useful for testing).`
 			},
 			query: t.Object({
-				difficulty: t.Optional(t.Union([t.Literal('easy'), t.Literal('medium'), t.Literal('hard')]))
+				difficulty: t.Optional(t.Union([t.Literal('easy'), t.Literal('medium'), t.Literal('hard')])),
+				mysteryId: t.Optional(t.String())
 			})
 		}
 	)
