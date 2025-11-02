@@ -1,0 +1,57 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+
+    - name: Install dependencies
+      run: bun install
+
+    - name: Start server with health check
+      run: |
+        # Start server
+        bun run dev &
+        SERVER_PID=$!
+        
+        # Wait for server to be ready
+        echo "Waiting for server to start..."
+        for i in {1..30}; do
+          if curl -f http://localhost:5173/mystery?mysteryId=myst_001 > /dev/null 2>&1; then
+            echo "Server is ready!"
+            break
+          fi
+          echo "Waiting for server... attempt $i"
+          sleep 2
+        done
+        
+        # Store PID for cleanup
+        echo $SERVER_PID > server.pid
+      env:
+        NODE_ENV: test
+
+    - name: Run tests
+      run: bun test
+
+    - name: Stop server
+      if: always()
+      run: |
+        if [ -f server.pid ]; then
+          kill $(cat server.pid) || true
+          rm server.pid
+        fi
