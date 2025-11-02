@@ -15,7 +15,7 @@ mysteries:
       - id: clue_002
         text: "Excellent! Now get Boldore's details and find the number of game versions it appears in. Count the entries in the game_indices array. What number do you get?"
         apiHint: 'Use the PokéAPI /pokemon/{name} endpoint to get detailed information.'
-        answer: '14'
+        answer: '4'
         hints:
           - 'Use the endpoint: https://pokeapi.co/api/v2/pokemon/boldore'
           - "Look for the 'game_indices' array in the response."
@@ -23,7 +23,7 @@ mysteries:
       - id: clue_003
         text: "Perfect! Now take that number (14) and multiply it by Boldore's base HP stat. What's your final answer?"
         apiHint: "Look in the 'stats' array for the stat with name 'hp' and get its base_stat value."
-        answer: '350'
+        answer: '280'
         hints:
           - "In the same Boldore data, find the 'stats' array."
           - "Look for the stat where stat.name is 'hp'."
@@ -38,7 +38,7 @@ mysteries:
       - id: clue_001
         text: "First, find how many sub-breeds the 'hound' breed has. What's the count?"
         apiHint: 'Check out the Dog API (https://dog.ceo/dog-api/) - no authentication needed!'
-        answer: '13'
+        answer: '7'
         hints:
           - 'Use the Dog API endpoint: https://dog.ceo/api/breeds/list/all'
           - "Look for the 'hound' key in the message object."
